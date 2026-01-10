@@ -1,35 +1,71 @@
-name: Build & Push to GHCR
+name: Build & Push Docker images to GHCR
 
 on:
   push:
-    branches: [ main ]
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
 
-    
 permissions:
   contents: read
   packages: write
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_BACKEND: ${{ github.repository_owner }}/cardvault-be
+  IMAGE_FRONTEND: ${{ github.repository_owner }}/cardvault-fe
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    env:
-      CTX: ${{ inputs.context }}
-      DOCKERFILE: ${{ inputs.dockerfile }}
-      PLATFORMS: ${{ inputs.platforms }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Compute tags
-        id: tags
+        id: vars
         run: |
-          SHA=${GITHUB_SHA::12}
-          DEFAULT_TAGS="latest,sha-$SHA"
-          RAW="${{ inputs.tags }}"
-          if [ -z "$RAW" ]; then
-            TAGS="$DEFAULT_TAGS"
-          else
-            TAGS="$(echo "$RAW,$DEFAULT_TAGS" | tr -d ' ' | sed 's/,,*/,/g' | sed 's/^,//;s/,$//')"
-          fi
-          echo "tags=$TAGS" >> $GITHUB_OUTPUT
+          echo "sha_short=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      # -------------------------
+      # Backend: backend/Dockerfile, context backend/api
+      # -------------------------
+      - name: Build & Push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend/api
+          file: ./backend/Dockerfile
+          push: true
+          build-args: |
+            DOCKER_BUILDKIT=1
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_BACKEND }}:sha-${{ steps.vars.outputs.sha_short }}
+            ${{ github.ref == 'refs/heads/main' && format('{0}/{1}:latest', env.REGISTRY, env.IMAGE_BACKEND) || '' }}
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+
+      # -------------------------
+      # Frontend: frontend/Dockerfile, context frontend/CardVault_Frontend
+      # -------------------------
+      - name: Build & Push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend/CardVault_Frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_FRONTEND }}:sha-${{ steps.vars.outputs.sha_short }}
+            ${{ github.ref == 'refs/heads/main' && format('{0}/{1}:latest', env.REGISTRY, env.IMAGE_FRONTEND) || '' }}
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
