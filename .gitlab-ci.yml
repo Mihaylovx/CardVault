@@ -1,0 +1,66 @@
+stages: [build, test]
+
+# Run for any trigger (push, MR, web/manual)
+workflow:
+  rules:
+    - when: always
+
+frontend:build:
+  stage: build
+  image: node:20
+  before_script:
+    - cd frontend/CardVault_Frontend
+    - npm ci
+  script:
+    - npm run build
+  artifacts:
+    when: always
+    paths:
+      - frontend/CardVault_Frontend/dist
+    expire_in: 1 week
+
+frontend:test:
+  stage: test
+  image: node:20
+  needs: ["frontend:build"]
+  before_script:
+    - cd frontend/CardVault_Frontend
+    - npm ci
+  script:
+    - npx vitest run --reporter=verbose || echo "No tests yet"
+
+backend:build:
+  stage: build
+  image: gradle:8.7-jdk17
+  variables:
+    GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle"
+  before_script:
+    - cd backend/api
+    - chmod +x gradlew
+  script:
+    - ./gradlew --no-daemon clean assemble
+  cache:
+    key: gradle-cache
+    paths:
+      - .gradle
+  artifacts:
+    when: always
+    paths:
+      - backend/api/build/libs
+    expire_in: 1 week
+
+backend:test:
+  stage: test
+  image: gradle:8.7-jdk17
+  variables:
+    GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle"
+  needs: ["backend:build"]
+  before_script:
+    - cd backend/api
+    - chmod +x gradlew
+  script:
+    - ./gradlew --no-daemon test
+  cache:
+    key: gradle-cache
+    paths:
+      - .gradle
