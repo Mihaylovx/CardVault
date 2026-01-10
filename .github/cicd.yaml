@@ -12,53 +12,42 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_BACKEND: ${{ github.repository_owner }}/cardvault-be
-  IMAGE_FRONTEND: ${{ github.repository_owner }}/cardvault-fe
+  IMAGE_BACKEND: ${{ github.repository_owner }}/cardvault-backend
+  IMAGE_FRONTEND: ${{ github.repository_owner }}/cardvault-frontend
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v3
 
-      - name: Log in to GHCR
+      - name: Login to GHCR
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Compute tags
+      - name: Short SHA
         id: vars
-        run: |
-          echo "sha_short=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+        run: echo "sha_short=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
-      # -------------------------
-      # Backend: backend/Dockerfile, context backend/api
-      # -------------------------
-      - name: Build & Push backend
+      - name: Build & push backend
         uses: docker/build-push-action@v6
         with:
           context: ./backend/api
           file: ./backend/Dockerfile
           push: true
-          build-args: |
-            DOCKER_BUILDKIT=1
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_BACKEND }}:sha-${{ steps.vars.outputs.sha_short }}
             ${{ github.ref == 'refs/heads/main' && format('{0}/{1}:latest', env.REGISTRY, env.IMAGE_BACKEND) || '' }}
           cache-from: type=gha,scope=backend
           cache-to: type=gha,mode=max,scope=backend
 
-      # -------------------------
-      # Frontend: frontend/Dockerfile, context frontend/CardVault_Frontend
-      # -------------------------
-      - name: Build & Push frontend
+      - name: Build & push frontend
         uses: docker/build-push-action@v6
         with:
           context: ./frontend/CardVault_Frontend
