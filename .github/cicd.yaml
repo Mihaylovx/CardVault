@@ -1,0 +1,35 @@
+name: Build & Push to GHCR
+
+on:
+  push:
+    branches: [ main ]
+
+    
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    env:
+      CTX: ${{ inputs.context }}
+      DOCKERFILE: ${{ inputs.dockerfile }}
+      PLATFORMS: ${{ inputs.platforms }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Compute tags
+        id: tags
+        run: |
+          SHA=${GITHUB_SHA::12}
+          DEFAULT_TAGS="latest,sha-$SHA"
+          RAW="${{ inputs.tags }}"
+          if [ -z "$RAW" ]; then
+            TAGS="$DEFAULT_TAGS"
+          else
+            TAGS="$(echo "$RAW,$DEFAULT_TAGS" | tr -d ' ' | sed 's/,,*/,/g' | sed 's/^,//;s/,$//')"
+          fi
+          echo "tags=$TAGS" >> $GITHUB_OUTPUT
