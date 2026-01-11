@@ -1,6 +1,7 @@
 plugins {
     id("org.springframework.boot") version "3.5.6"
     id("io.spring.dependency-management") version "1.1.6"
+    id("org.sonarqube") version "7.2.2.6593"
     java
 }
 
@@ -33,6 +34,14 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
+}
+
+sonar{
+    properties{
+        property("sonar.projectKey", "cardvault-backend")
+        property("sonar.projectName", "cardvault")
+        property("sonar.host.url", "http://localhost:9000")
+    }
 }
 
 tasks.test {

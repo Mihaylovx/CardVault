@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.6
+
 ARG JAVA_VERSION=25
 
 FROM eclipse-temurin:${JAVA_VERSION}-jdk-jammy AS test
@@ -21,7 +21,7 @@ RUN --mount=type=cache,target=/root/.gradle \
 FROM test AS build
 RUN --mount=type=cache,target=/root/.gradle \
     ./gradlew --no-daemon clean build \
-    -x test
+     test
 
 FROM eclipse-temurin:${JAVA_VERSION}-jre-jammy AS runtime
 WORKDIR /app

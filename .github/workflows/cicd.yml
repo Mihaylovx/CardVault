@@ -47,6 +47,14 @@ jobs:
           cache-from: type=gha,scope=backend
           cache-to: type=gha,mode=max,scope=backend
 
+        name: SonarQube analysis (backend)
+        working-directory: backend/api
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io/
+        run: ./gradlew clean test sonar
+
+
       - name: Build & push frontend
         uses: docker/build-push-action@v6
         with:
