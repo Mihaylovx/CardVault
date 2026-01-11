@@ -35,6 +35,12 @@ jobs:
         id: vars
         run: echo "sha_short=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
+      - name: SonarCloud analysis (backend)
+        working-directory: backend/api
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./gradlew clean test sonar
+
       - name: Build & push backend
         uses: docker/build-push-action@v6
         with:
@@ -46,14 +52,6 @@ jobs:
             ${{ github.ref == 'refs/heads/main' && format('{0}/{1}:latest', env.REGISTRY, env.IMAGE_BACKEND) || '' }}
           cache-from: type=gha,scope=backend
           cache-to: type=gha,mode=max,scope=backend
-
-        name: SonarQube analysis (backend)
-        working-directory: backend/api
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: https://sonarcloud.io/
-        run: ./gradlew clean test sonar
-
 
       - name: Build & push frontend
         uses: docker/build-push-action@v6
