@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/CardVault
+    username: postgres
+    password: test
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  server:
+    error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: always
+
+  logging:
+    level:
+      org.springframework.web: DEBUG
+      org.springframework.http.converter: DEBUG
+server:
+  port: 8080
