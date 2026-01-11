@@ -122,7 +122,7 @@ export default function App() {
                 <span style={{ color: "#444" }}>
                   Logged in as <b>{auth.username}</b> · {current?.credits != null ? Number(current.credits).toFixed(2) : "—"} credits
                 </span>
-                <button onClick={logout} style={{ padding: "7px 10px", borderRadius: 8, border: "1px solid #ddd", background: "white" }}>
+                <button onClick={logout} style={{ padding: "7px 10px", borderRadius: 8, border: "1px solid #ddd", background: "black" }}>
                   Logout
                 </button>
               </>

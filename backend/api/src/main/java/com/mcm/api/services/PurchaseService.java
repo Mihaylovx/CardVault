@@ -7,8 +7,11 @@ import com.mcm.api.entities.UserAccount;
 import com.mcm.api.repository.ListingRepository;
 import com.mcm.api.repository.PurchaseRepository;
 import com.mcm.api.repository.UserAccountRepository;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 
@@ -37,7 +40,7 @@ public class PurchaseService {
         UserAccount sellerAcc = listing.getSeller();
 
         BigDecimal total = listing.getPrice().multiply(new BigDecimal(quantity));
-        if (buyerAcc.getCredits().compareTo(total) < 0) throw new IllegalStateException("not enough credits");
+        if (buyerAcc.getCredits().compareTo(total) < 0) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "not enough credits");
 
         buyerAcc.setCredits(buyerAcc.getCredits().subtract(total));
         sellerAcc.setCredits(sellerAcc.getCredits().add(total));

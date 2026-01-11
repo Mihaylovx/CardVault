@@ -13,7 +13,7 @@ export default function MyListingsPage({ currentUser, onUserUpdate }) {
   const [err, setErr] = useState(null);
 
   const load = async () => {
-    const { data } = await api.get("/listings", { params: { seller: currentUser?.username?.toLowerCase() } });
+    const { data } = await api.get("/listings", { params: { seller: currentUser?.username } });
     setItems(data);
   };
 

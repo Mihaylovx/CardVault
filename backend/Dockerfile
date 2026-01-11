@@ -16,7 +16,7 @@ RUN chmod +x gradlew && ./gradlew --no-daemon --version
 COPY src/ ./src/
 
 RUN --mount=type=cache,target=/root/.gradle \
-    ./gradlew --no-daemon -x test
+    ./gradlew --no-daemon test
 
 FROM test AS build
 RUN --mount=type=cache,target=/root/.gradle \

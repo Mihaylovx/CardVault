@@ -23,11 +23,16 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-security")
 
-    // Keep H2 for quick local dev/tests, but use Postgres for the real app.
     runtimeOnly("com.h2database:h2")
     runtimeOnly("org.postgresql:postgresql")
 
+    // Includes JUnit Jupiter + Mockito + Spring test utilities
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+
+    // Only keep these if you're actually using Testcontainers right now
+    testImplementation("org.testcontainers:junit-jupiter")
+    testImplementation("org.testcontainers:postgresql")
+    testImplementation("org.springframework.boot:spring-boot-testcontainers")
 }
 
 tasks.test {
